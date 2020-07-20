@@ -323,7 +323,7 @@ def train(cfg):
                         num_workers=cfg["num_workers"])
 
     # create model and optimizer
-    input_size_stat = 0 if cfg["no_static"] else 27
+    input_size_stat = 0 if cfg["no_static"] else 10
     input_size_dyn = 5 if (cfg["no_static"] or not cfg["concat_static"]) else 32
     model = Model(input_size_dyn=input_size_dyn,
                   input_size_stat=input_size_stat,
@@ -445,7 +445,7 @@ def evaluate(user_cfg: Dict):
     stds = attributes.std()
 
     # create model
-    input_size_stat = 0 if run_cfg["no_static"] else 27
+    input_size_stat = 0 if run_cfg["no_static"] else 10
     input_size_dyn = 5 if (run_cfg["no_static"] or not run_cfg["concat_static"]) else 32
     model = Model(input_size_dyn=input_size_dyn,
                   input_size_stat=input_size_stat,

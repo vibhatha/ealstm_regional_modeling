@@ -74,6 +74,27 @@ def add_camels_attributes(camels_root: PosixPath, db_path: str = None):
     df['huc'] = df['huc_02'].apply(lambda x: str(x).zfill(2))
     df = df.drop('huc_02', axis=1)
 
+    #for col in df.columns:
+    #    print(col)
+
+    # The two location attribs are required all time.
+    # The attributes were obtained from the Table 4 of the paper for this code.
+    top10attrs = [
+                "gauge_lat",
+                "gauge_lon",
+                "p_mean",
+                "aridity",
+                "area_gages2",
+                "elev_mean",
+                "high_prec_dur",
+                "frac_snow",
+                "high_prec_freq",
+                "slope_mean",
+                "geol_permeability",
+                "carbonate_rocks_frac"
+                ]
+
+    df = df[top10attrs]
     if db_path is None:
         db_path = str(Path(__file__).absolute().parent.parent / 'data' / 'attributes.db')
 
