@@ -489,7 +489,7 @@ def train(cfg):
 
     # create model and optimizer
     numattribs = 27
-    if cfg["user_partial_attribs"]:
+    if cfg["use_partial_attribs"]:
         numattribs = 10
     input_size_stat = 0 if cfg["no_static"] else numattribs
     input_size_dyn = 5 if (cfg["no_static"] or not cfg["concat_static"]) else 32
@@ -614,7 +614,7 @@ def evaluate(user_cfg: Dict):
 
     # create model
     numattribs = 27
-    if cfg["user_partial_attribs"]:
+    if cfg["use_partial_attribs"]:
         numattribs = 10
     input_size_stat = 0 if run_cfg["no_static"] else numattribs
     input_size_dyn = 5 if (run_cfg["no_static"] or not run_cfg["concat_static"]) else 32
