@@ -233,7 +233,7 @@ def get_args() -> Dict:
                         type=bool,
                         default=False,
                         help="If True, uses mean squared error as loss function.")
-    parser.add_argument('--user_partial_attribs',
+    parser.add_argument('--use_partial_attribs',
                         type=bool,
                         default=False,
                         help="If True, uses only the top 10 characteristics.")
