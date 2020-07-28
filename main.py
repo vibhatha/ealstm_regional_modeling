@@ -41,15 +41,15 @@ from papercode.utils import create_h5_files, get_basin_list
 
 # fixed settings for all experiments
 GLOBAL_SETTINGS = {
-    'batch_size': 256,
+#    'batch_size': 256,
     'clip_norm': True,
     'clip_value': 1,
-    'dropout': 0.4,
-    'epochs': 30,
-    'hidden_size': 256,
+#    'dropout': 0.4,
+#    'epochs': 30,
+#    'hidden_size': 256,
     'initial_forget_gate_bias': 5,
     'log_interval': 50,
-    'learning_rate': 1e-3,
+#    'learning_rate': 1e-3,
     'seq_length': 270,
     'train_start': pd.to_datetime('01101999', format='%d%m%Y'),
     'train_end': pd.to_datetime('30092008', format='%d%m%Y'),
@@ -57,6 +57,141 @@ GLOBAL_SETTINGS = {
     'val_end': pd.to_datetime('30091999', format='%d%m%Y')
 }
 
+basin_list = {}
+basin_list["US"] = ["01022500",
+                    "02011400",
+                    "03010655",
+                    "04015330",
+                    "05291000",
+                    "06221400",
+                    "07291000",
+                    "08013000",
+                    "09035800",
+                    "10234500",
+                    "11124500",
+                    "12010000",
+                    "13011500",
+                    "14020000",
+                    "01669520",
+                    "02481510",
+                    "03604000",
+                    "04256000",
+                    "05120500",
+                    "06921200",
+                    "07346045",
+                    "08380500",
+                    "09513780",
+                    "10259000",
+                    "11532500",
+                    "12488500"]
+basin_list["NE"] = ["01031500",
+                    "01055000",
+                    "01078000",
+                    "01181000",
+                    "01195100",
+                    "01440000",
+                    "04233000",
+                    "03049000",
+                    "01568000",
+                    "01669520",
+                    "03213700",
+                    "03300400",
+                    "07014500",
+                    "06906800",
+                    "05062500",
+                    "04024430",
+                    "04074950",
+                    "05412500",
+                    "05495000",
+                    "05525500",
+                    "04124000",
+                    "04196800",
+                    "04185000",
+                    "03237500",
+                    "03346000",
+                    "03366500"
+                  ]
+basin_list["SE"] = ["02053200",
+                    "02108000",
+                    "02128000",
+                    "03498500",
+                    "02196000",
+                    "02202600",
+                    "02314500",
+                    "02235200",
+                    "02310947",
+                    "02361000",
+                    "02469800",
+                    "02472000",
+                    "07291000",
+                    "07375000",
+                    "08013000",
+                    "07362100",
+                    "07056000",
+                    "03604000",
+                    "03592718",
+                    "02464000",
+                    "08014500",
+                    "02327100",
+                    "02221525",
+                    "02350900",
+                    "07060710",
+                    "02140991"
+                    ]
+basin_list["NW"] = ["05123400",
+                    "05057000",
+                    "06353000",
+                    "06477500",
+                    "06601000",
+                    "06784000",
+                    "06876700",
+                    "07149000",
+                    "06847900",
+                    "06452000",
+                    "06289000",
+                    "06224000",
+                    "06154410",
+                    "06043500",
+                    "09081600",
+                    "10242000",
+                    "13023000",
+                    "12358500",
+                    "13337000",
+                    "14020000",
+                    "11383500",
+                    "10249300",
+                    "14301000",
+                    "11522500",
+                    "10396000",
+                    "09312600"
+                    ]
+basin_list["SW"] = ["11151300",
+                    "11124500",
+                    "10259200",
+                    "09505800",
+                    "08070000",
+                    "09447800",
+                    "09430500",
+                    "09484600",
+                    "08324000",
+                    "07226500",
+                    "07301500",
+                    "08079600",
+                    "07315700",
+                    "08086290",
+                    "08190500",
+                    "08194200",
+                    "08101000",
+                    "07346045",
+                    "08066200",
+                    "08164300",
+                    "08189500",
+                    "07148400",
+                    "08175000",
+                    "07299670",
+                    "09386900",
+                    "07315200"
+                    ]
 # check if GPU is available
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -98,6 +233,34 @@ def get_args() -> Dict:
                         type=bool,
                         default=False,
                         help="If True, uses mean squared error as loss function.")
+    parser.add_argument('--user_partial_attribs',
+                        type=bool,
+                        default=False,
+                        help="If True, uses only the top 10 characteristics.")
+    parser.add_argument('--epochs',
+                        type=int,
+                        default=30,
+                        help="Number of epochs for training.")
+    parser.add_argument('--batch_size',
+                        type=int,
+                        default=256,
+                        help="batch size.")
+    parser.add_argument('--hidden_size',
+                        type=int,
+                        default=256,
+                        help="hidden size.")
+    parser.add_argument('--dropout',
+                        type=float,
+                        default=0.4,
+                        help="dropout.")
+    parser.add_argument('--learning_rate',
+                        type=float,
+                        default=1e-3,
+                        help="initial learning rate.")
+    parser.add_argument('--region',
+                        type=str,
+                        default="US",
+                        help="US region to study.")
     cfg = vars(parser.parse_args())
 
     # Validation checks
@@ -183,7 +346,8 @@ def _prepare_data(cfg: Dict, basins: List) -> Dict:
     """
     # create database file containing the static basin attributes
     cfg["db_path"] = str(cfg["run_dir"] / "attributes.db")
-    add_camels_attributes(cfg["camels_root"], db_path=cfg["db_path"])
+    add_camels_attributes(cfg["camels_root"], db_path=cfg["db_path"],
+                          userPartialAttribs=cfg["use_partial_attribs"])
 
     # create .h5 files for train and validation data
     cfg["train_file"] = cfg["train_dir"] / 'train_data.h5'
@@ -302,7 +466,8 @@ def train(cfg):
     torch.cuda.manual_seed(cfg["seed"])
     torch.manual_seed(cfg["seed"])
 
-    basins = get_basin_list()
+    #basins = get_basin_list()
+    basins = basin_list[cfg["region"]]
 
     # create folder structure for this run
     cfg = _setup_run(cfg)
@@ -323,7 +488,10 @@ def train(cfg):
                         num_workers=cfg["num_workers"])
 
     # create model and optimizer
-    input_size_stat = 0 if cfg["no_static"] else 10
+    numattribs = 27
+    if cfg["user_partial_attribs"]:
+        numattribs = 10
+    input_size_stat = 0 if cfg["no_static"] else numattribs
     input_size_dyn = 5 if (cfg["no_static"] or not cfg["concat_static"]) else 32
     model = Model(input_size_dyn=input_size_dyn,
                   input_size_stat=input_size_stat,
@@ -445,7 +613,10 @@ def evaluate(user_cfg: Dict):
     stds = attributes.std()
 
     # create model
-    input_size_stat = 0 if run_cfg["no_static"] else 10
+    numattribs = 27
+    if cfg["user_partial_attribs"]:
+        numattribs = 10
+    input_size_stat = 0 if run_cfg["no_static"] else numattribs
     input_size_dyn = 5 if (run_cfg["no_static"] or not run_cfg["concat_static"]) else 32
     model = Model(input_size_dyn=input_size_dyn,
                   input_size_stat=input_size_stat,

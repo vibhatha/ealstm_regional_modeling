@@ -15,6 +15,35 @@ import numpy as np
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon
 
+import shapefile as shp  # Requires the pyshp package
+import matplotlib.pyplot as plt
+from mpl_toolkits.basemap import Basemap
+
+def plot_basins(shapefile, basins):
+    #print (shapefile)
+    #sf = shp.Reader(shapefile)
+
+    plt.figure(figsize=(20,16))
+    m = Basemap(projection='lcc', resolution='h',
+                lat_0=37.5, lon_0=-100,
+                width=5E6, height=3E6)
+    m.shadedrelief()
+    m.drawcoastlines(color='gray')
+    m.drawcountries(color='gray')
+    m.drawstates(color='gray')
+    m.readshapefile(shapefile, 'basins_shape', drawbounds=False)
+
+    basinids = [int(basinid) for basinid in basins]
+    basinids_seen = set()
+
+    for record, shape in zip(m.basins_shape_info, m.basins_shape):
+        x, y = zip(*shape)
+        if record['hru_id'] in basinids:
+            m.plot(x, y, marker=None, color='m')
+            if record['hru_id'] not in basinids_seen:
+                plt.text(x[0],y[0],record['hru_id'])
+                basinids_seen.add(record['hru_id'])
+    plt.show()
 
 def ecdf(x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """Calculate empirical cummulative density function

@@ -36,7 +36,8 @@ SCALER = {
 }
 
 
-def add_camels_attributes(camels_root: PosixPath, db_path: str = None):
+def add_camels_attributes(camels_root: PosixPath, db_path: str = None,
+                          userPartialAttribs: bool = False):
     """Load catchment characteristics from txt files and store them in a sqlite3 table
     
     Parameters
@@ -93,8 +94,8 @@ def add_camels_attributes(camels_root: PosixPath, db_path: str = None):
                 "geol_permeability",
                 "carbonate_rocks_frac"
                 ]
-
-    df = df[top10attrs]
+    if userPartialAttribs:
+        df = df[top10attrs]
     if db_path is None:
         db_path = str(Path(__file__).absolute().parent.parent / 'data' / 'attributes.db')
 
