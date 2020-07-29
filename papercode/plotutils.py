@@ -193,22 +193,22 @@ model_specs = {
         'model': 'ealstm',
         'loss': 'NSELoss'
     },
-    'lstm_MSE': {
-        'model': 'lstm',
-        'loss': 'MSELoss'
-    },
-    'lstm_NSE': {
-        'model': 'lstm',
-        'loss': 'NSELoss'
-    },
-    'lstm_no_static_MSE': {
-        'model': 'lstm_no_static',
-        'loss': 'MSELoss'
-    },
-    'lstm_no_static_NSE': {
-        'model': 'lstm_no_static',
-        'loss': 'NSELoss'
-    }
+    #'lstm_MSE': {
+    #    'model': 'lstm',
+    #    'loss': 'MSELoss'
+    #},
+    #'lstm_NSE': {
+    #    'model': 'lstm',
+    #    'loss': 'NSELoss'
+    #},
+    #'lstm_no_static_MSE': {
+    #    'model': 'lstm_no_static',
+    #    'loss': 'MSELoss'
+    #},
+    #'lstm_no_static_NSE': {
+    #    'model': 'lstm_no_static',
+    #    'loss': 'NSELoss'
+    #}
 }
 
 attribute_draw_style = {
