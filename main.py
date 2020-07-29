@@ -607,7 +607,7 @@ def evaluate(user_cfg: Dict):
         run_cfg = json.load(fp)
 
     #basins = get_basin_list()
-    basins = basin_list[user_cfg["region"]]
+    basins = basin_list[run_cfg["region"]]
 
     # get attribute means/stds
     db_path = str(user_cfg["run_dir"] / "attributes.db")
@@ -631,7 +631,7 @@ def evaluate(user_cfg: Dict):
                   no_static=run_cfg["no_static"]).to(DEVICE)
 
     # load trained model
-    weight_file = user_cfg["run_dir"] / f"model_epoch{user_cfg['epochs']}.pt"
+    weight_file = user_cfg["run_dir"] / f"model_epoch{run_cfg['epochs']}.pt"
     model.load_state_dict(torch.load(weight_file, map_location=DEVICE))
 
     date_range = pd.date_range(start=GLOBAL_SETTINGS["val_start"], end=GLOBAL_SETTINGS["val_end"])
@@ -737,7 +737,7 @@ def eval_robustness(user_cfg: Dict):
         raise NotImplementedError("This function is only implemented for EA-LSTM models")
 
     #basins = get_basin_list()
-    basins = basin_list[user_cfg["region"]]
+    basins = basin_list[run_cfg["region"]]
 
     # get attribute means/stds
     db_path = str(user_cfg["run_dir"] / "attributes.db")
@@ -752,7 +752,7 @@ def eval_robustness(user_cfg: Dict):
                   input_size_stat=27,
                   hidden_size=run_cfg["hidden_size"],
                   dropout=run_cfg["dropout"]).to(DEVICE)
-    weight_file = user_cfg["run_dir"] / f"model_epoch{user_cfg['epochs']}.pt"
+    weight_file = user_cfg["run_dir"] / f"model_epoch{run_cfg['epochs']}.pt"
     model.load_state_dict(torch.load(weight_file, map_location=DEVICE))
 
     overall_results = {}
