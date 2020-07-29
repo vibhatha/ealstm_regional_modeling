@@ -213,6 +213,9 @@ def get_args() -> Dict:
     parser.add_argument('--camels_root', type=str, help="Root directory of CAMELS data set")
     parser.add_argument('--seed', type=int, required=False, help="Random seed")
     parser.add_argument('--run_dir', type=str, help="For evaluation mode. Path to run directory.")
+    parser.add_argument('--run_name',
+                        type=str,
+                        help="For train mode. Directory name of the run.")
     parser.add_argument('--cache_data',
                         type=bool,
                         default=False,
@@ -299,12 +302,13 @@ def _setup_run(cfg: Dict) -> Dict:
     dict
         Dictionary containing the updated run config
     """
-    now = datetime.now()
-    day = f"{now.day}".zfill(2)
-    month = f"{now.month}".zfill(2)
-    hour = f"{now.hour}".zfill(2)
-    minute = f"{now.minute}".zfill(2)
-    run_name = f'run_{day}{month}_{hour}{minute}_seed{cfg["seed"]}'
+    #now = datetime.now()
+    #day = f"{now.day}".zfill(2)
+    #month = f"{now.month}".zfill(2)
+    #hour = f"{now.hour}".zfill(2)
+    #minute = f"{now.minute}".zfill(2)
+    #run_name = f'run_{day}{month}_{hour}{minute}_seed{cfg["seed"]}'
+    run_name = cfg["run_name"]
     cfg['run_dir'] = Path(__file__).absolute().parent / "runs" / run_name
     if not cfg["run_dir"].is_dir():
         cfg["train_dir"] = cfg["run_dir"] / 'data' / 'train'
@@ -602,7 +606,8 @@ def evaluate(user_cfg: Dict):
     with open(user_cfg["run_dir"] / 'cfg.json', 'r') as fp:
         run_cfg = json.load(fp)
 
-    basins = get_basin_list()
+    #basins = get_basin_list()
+    basins = basin_list[user_cfg["region"]]
 
     # get attribute means/stds
     db_path = str(user_cfg["run_dir"] / "attributes.db")
@@ -626,7 +631,7 @@ def evaluate(user_cfg: Dict):
                   no_static=run_cfg["no_static"]).to(DEVICE)
 
     # load trained model
-    weight_file = user_cfg["run_dir"] / 'model_epoch30.pt'
+    weight_file = user_cfg["run_dir"] / f"model_epoch{user_cfg['epochs']}.pt"
     model.load_state_dict(torch.load(weight_file, map_location=DEVICE))
 
     date_range = pd.date_range(start=GLOBAL_SETTINGS["val_start"], end=GLOBAL_SETTINGS["val_end"])
@@ -731,7 +736,8 @@ def eval_robustness(user_cfg: Dict):
     if run_cfg["concat_static"] or run_cfg["no_static"]:
         raise NotImplementedError("This function is only implemented for EA-LSTM models")
 
-    basins = get_basin_list()
+    #basins = get_basin_list()
+    basins = basin_list[user_cfg["region"]]
 
     # get attribute means/stds
     db_path = str(user_cfg["run_dir"] / "attributes.db")
@@ -746,7 +752,7 @@ def eval_robustness(user_cfg: Dict):
                   input_size_stat=27,
                   hidden_size=run_cfg["hidden_size"],
                   dropout=run_cfg["dropout"]).to(DEVICE)
-    weight_file = user_cfg["run_dir"] / "model_epoch30.pt"
+    weight_file = user_cfg["run_dir"] / f"model_epoch{user_cfg['epochs']}.pt"
     model.load_state_dict(torch.load(weight_file, map_location=DEVICE))
 
     overall_results = {}
