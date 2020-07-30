@@ -212,10 +212,13 @@ def get_args() -> Dict:
     parser.add_argument('mode', choices=["train", "evaluate", "eval_robustness"])
     parser.add_argument('--camels_root', type=str, help="Root directory of CAMELS data set")
     parser.add_argument('--seed', type=int, required=False, help="Random seed")
-    parser.add_argument('--run_dir', type=str, help="For evaluation mode. Path to run directory.")
+    parser.add_argument('--exp_dir',
+                        type=str,
+                        help="For train mode. Experiments runs directory.")
     parser.add_argument('--run_name',
                         type=str,
                         help="For train mode. Directory name of the run.")
+    parser.add_argument('--run_dir', type=str, help="For evaluation mode. Path to run directory.")
     parser.add_argument('--cache_data',
                         type=bool,
                         default=False,
@@ -286,6 +289,8 @@ def get_args() -> Dict:
     cfg["camels_root"] = Path(cfg["camels_root"])
     if cfg["run_dir"] is not None:
         cfg["run_dir"] = Path(cfg["run_dir"])
+    if cfg["exp_dir"] is not None:
+        cfg["exp_dir"] = Path(cfg["exp_dir"])
     return cfg
 
 
@@ -309,7 +314,10 @@ def _setup_run(cfg: Dict) -> Dict:
     #minute = f"{now.minute}".zfill(2)
     #run_name = f'run_{day}{month}_{hour}{minute}_seed{cfg["seed"]}'
     run_name = cfg["run_name"]
-    cfg['run_dir'] = Path(__file__).absolute().parent / "runs" / run_name
+    path = Path(__file__).absolute().parent
+    if cfg['exp_dir']:
+        path = cfg['exp_dir']
+    cfg['run_dir'] = path / "runs" / run_name
     if not cfg["run_dir"].is_dir():
         cfg["train_dir"] = cfg["run_dir"] / 'data' / 'train'
         cfg["train_dir"].mkdir(parents=True)
