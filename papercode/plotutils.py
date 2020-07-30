@@ -201,14 +201,14 @@ model_specs = {
         'model': 'lstm',
         'loss': 'NSELoss'
     },
-    #'lstm_no_static_MSE': {
-    #    'model': 'lstm_no_static',
-    #    'loss': 'MSELoss'
-    #},
-    #'lstm_no_static_NSE': {
-    #    'model': 'lstm_no_static',
-    #    'loss': 'NSELoss'
-    #}
+    'lstm_no_static_MSE': {
+        'model': 'lstm_no_static',
+        'loss': 'MSELoss'
+    },
+    'lstm_no_static_NSE': {
+        'model': 'lstm_no_static',
+        'loss': 'NSELoss'
+    }
 }
 
 attribute_draw_style = {
