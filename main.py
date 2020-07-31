@@ -500,11 +500,13 @@ def train(cfg):
                         num_workers=cfg["num_workers"])
 
     # create model and optimizer
-    numattribs = 27
+    num_stat_attribs = 27
+    num_dyn_attribs = 32
     if cfg["use_partial_attribs"]:
-        numattribs = 10
-    input_size_stat = 0 if cfg["no_static"] else numattribs
-    input_size_dyn = 5 if (cfg["no_static"] or not cfg["concat_static"]) else 32
+        num_stat_attribs = 10
+        num_dyn_attribs = 15
+    input_size_stat = 0 if cfg["no_static"] else num_stat_attribs
+    input_size_dyn = 5 if (cfg["no_static"] or not cfg["concat_static"]) else num_dyn_attribs
     model = Model(input_size_dyn=input_size_dyn,
                   input_size_stat=input_size_stat,
                   hidden_size=cfg["hidden_size"],
@@ -625,12 +627,15 @@ def evaluate(user_cfg: Dict):
     means = attributes.mean()
     stds = attributes.std()
 
-    # create model
-    numattribs = 27
+    # create model and optimizer
+    num_stat_attribs = 27
+    num_dyn_attribs = 32
     if run_cfg["use_partial_attribs"]:
-        numattribs = 10
-    input_size_stat = 0 if run_cfg["no_static"] else numattribs
-    input_size_dyn = 5 if (run_cfg["no_static"] or not run_cfg["concat_static"]) else 32
+        num_stat_attribs = 10
+        num_dyn_attribs = 15
+    input_size_stat = 0 if run_cfg["no_static"] else num_stat_attribs
+    input_size_dyn = 5 if (run_cfg["no_static"] or not run_cfg[
+                                "concat_static"]) else num_dyn_attribs
     model = Model(input_size_dyn=input_size_dyn,
                   input_size_stat=input_size_stat,
                   hidden_size=run_cfg["hidden_size"],
