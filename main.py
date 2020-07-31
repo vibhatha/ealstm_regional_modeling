@@ -288,7 +288,7 @@ def get_args() -> Dict:
     # convert path to PosixPath object
     cfg["camels_root"] = Path(cfg["camels_root"])
     if cfg["run_dir"] is not None:
-        cfg["run_dir"] = Path(cfg["run_dir"])
+        cfg["run_dir"] = Path(cfg["run_dir"].replace('"', ''))
     if cfg["exp_dir"] is not None:
         cfg["exp_dir"] = Path(cfg["exp_dir"].replace('"', ''))
     return cfg
