@@ -148,22 +148,24 @@ def eval_lstm_models(run_dirs: List, func: Callable) -> dict:
     single_models = {}
     model_ensemble = defaultdict(dict)
     for run_dir in tqdm.tqdm(run_dirs):
-        eval_file = list(run_dir.glob("*.p"))[0]
-        parts = eval_file.name.split('_')
-        seed = parts[-1][:-2]
-        single_models[seed] = {}
-        with eval_file.open("rb") as fp:
-            data = pickle.load(fp)
-        for basin, df in data.items():
-            obs = df["qobs"].values
-            sim = df["qsim"].values
-            sim = sim[obs >= 0]
-            obs = obs[obs >= 0]
-            single_models[seed][basin] = func(obs, sim)
-            if basin not in model_ensemble.keys():
-                model_ensemble[basin]["df"] = df
-            else:
-                model_ensemble[basin]["df"]["qsim"] += df["qsim"]
+        check_eval_file = list(run_dir.glob("*.p"))
+        if check_eval_file:
+            eval_file = check_eval_file[0]
+            parts = eval_file.name.split('_')
+            seed = parts[-1][:-2]
+            single_models[seed] = {}
+            with eval_file.open("rb") as fp:
+                data = pickle.load(fp)
+            for basin, df in data.items():
+                obs = df["qobs"].values
+                sim = df["qsim"].values
+                sim = sim[obs >= 0]
+                obs = obs[obs >= 0]
+                single_models[seed][basin] = func(obs, sim)
+                if basin not in model_ensemble.keys():
+                    model_ensemble[basin]["df"] = df
+                else:
+                    model_ensemble[basin]["df"]["qsim"] += df["qsim"]
 
     ensemble_nse = {}
     for basin, data in model_ensemble.items():
