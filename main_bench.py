@@ -545,10 +545,10 @@ def train(cfg):
                 param_group["lr"] = learning_rates[epoch]
 
         t1_epoch_time_total = time.time()
-        t_epoch_pure_training_time_total = train_epoch(model, optimizer, loss_func, loader, cfg, epoch, cfg["use_mse"])
+        t_epoch_pure_training_time_total, t_misc_time_total = train_epoch(model, optimizer, loss_func, loader, cfg, epoch, cfg["use_mse"])
         t2_epoch_time_total = time.time()
         
-        t_epoch_pure_data_time_total = (t2_epoch_time_total - t1_epoch_time_total) - t_epoch_pure_training_time_total
+        t_epoch_pure_data_time_total = (t2_epoch_time_total - t1_epoch_time_total) - (t_epoch_pure_training_time_total + t_misc_time_total)
 
         model_path = cfg["run_dir"] / f"model_epoch{epoch}.pt"
         torch.save(model.state_dict(), str(model_path))
@@ -583,8 +583,12 @@ def train_epoch(model: nn.Module, optimizer: torch.optim.Optimizer, loss_func: n
     model.train()
 
     # process bar handle
+    t_prep_tqdm_time_total = 0
+    t1 = time.time()
     pbar = tqdm(loader, file=sys.stdout)
     pbar.set_description(f'# Epoch {epoch}')
+    t2 = time.time()
+    t_prep_tqdm_time_total = t2 - t1
     t_optimizer_zero_time_total = 0        
     t_forward_time_total = 0
     t_loss_time_total = 0
@@ -649,7 +653,7 @@ def train_epoch(model: nn.Module, optimizer: torch.optim.Optimizer, loss_func: n
         pbar.set_postfix_str(f"Loss: {loss.item():5f}")
         t2 = time.time()
         t_optimizer_time_total += t2 - t1
-    return t_optimizer_zero_time_total + t_forward_time_total + t_loss_time_total + t_backward_time_total + t_optimizer_time_total + t_mist_time_total
+    return t_optimizer_zero_time_total + t_forward_time_total + t_loss_time_total + t_backward_time_total + t_optimizer_time_total + t_mist_time_total, t_prep_tqdm_time_total
 
 def evaluate(user_cfg: Dict):
     """Train model for a single epoch.
