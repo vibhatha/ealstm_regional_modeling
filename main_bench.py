@@ -491,12 +491,12 @@ def train(cfg):
     cfg = _setup_run(cfg)
 
     # prepare data for training
-    t1_prep_total = time.time_ns()
+    t1_prep_total = time.time()
     cfg = _prepare_data(cfg=cfg, basins=basins)
-    t2_prep_total = time.time_ns()
+    t2_prep_total = time.time()
 
     # prepare PyTorch DataLoader
-    t1_pre_data_loader_total = time.time_ns()
+    t1_pre_data_loader_total = time.time()
     ds = CamelsH5(h5_file=cfg["train_file"],
                   basins=basins,
                   db_path=cfg["db_path"],
@@ -507,10 +507,10 @@ def train(cfg):
                         batch_size=cfg["batch_size"],
                         shuffle=True,
                         num_workers=cfg["num_workers"])
-    t2_pre_data_loader_total = time.time_ns()
+    t2_pre_data_loader_total = time.time()
     
-    print(f"Total Data Preparation Time {(t2_prep_total - t1_prep_total)/NS_CONV} s")
-    print(f"Total Data Loader Time {(t2_pre_data_loader_total - t1_pre_data_loader_total)/NS_CONV} s")
+    print(f"Total Data Preparation Time {(t2_prep_total - t1_prep_total)} s")
+    print(f"Total Data Loader Time {(t2_pre_data_loader_total - t1_pre_data_loader_total)} s")
 
     # create model and optimizer
     num_stat_attribs = 27
@@ -544,15 +544,15 @@ def train(cfg):
             for param_group in optimizer.param_groups:
                 param_group["lr"] = learning_rates[epoch]
 
-        t1_epoch_time_total = time.time_ns()
+        t1_epoch_time_total = time.time()
         t_epoch_pure_training_time_total = train_epoch(model, optimizer, loss_func, loader, cfg, epoch, cfg["use_mse"])
-        t2_epoch_time_total = time.time_ns()
+        t2_epoch_time_total = time.time()
         
         t_epoch_pure_data_time_total = (t2_epoch_time_total - t1_epoch_time_total) - t_epoch_pure_training_time_total
 
         model_path = cfg["run_dir"] / f"model_epoch{epoch}.pt"
         torch.save(model.state_dict(), str(model_path))
-        print(f"Total Data Manipulation Time Per Epoch[{epoch}] : {t_epoch_pure_data_time_total / NS_CONV} s")
+        print(f"Total Data Manipulation Time Per Epoch[{epoch}] : {t_epoch_pure_data_time_total} s")
 
         
 def train_epoch(model: nn.Module, optimizer: torch.optim.Optimizer, loss_func: nn.Module,
@@ -593,51 +593,51 @@ def train_epoch(model: nn.Module, optimizer: torch.optim.Optimizer, loss_func: n
     # Iterate in batches over training set
     for data in pbar:
         # delete old gradients
-        t1 = time.time_ns()
+        t1 = time.time()
         optimizer.zero_grad()
-        t2= time.time_ns()
+        t2= time.time()
         t_optimizer_zero_time_total += t2-t1
 
         # forward pass through LSTM
         if len(data) == 3:
             x, y, q_stds = data
-            t1 = time.time_ns()
+            t1 = time.time()
             x, y, q_stds = x.to(DEVICE), y.to(DEVICE), q_stds.to(DEVICE)
             predictions = model(x)[0]
-            t2 = time.time_ns()
+            t2 = time.time()
             t_forward_time_total += t2 - t1
 
         # forward pass through EALSTM
         elif len(data) == 4:
             x_d, x_s, y, q_stds = data
-            t1 = time.time_ns()
+            t1 = time.time()
             x_d, x_s, y = x_d.to(DEVICE), x_s.to(DEVICE), y.to(DEVICE)
             predictions = model(x_d, x_s[:, 0, :])[0]
-            t2 = time.time_ns()
+            t2 = time.time()
             t_forward_time_total += t2- t1            
 
         # MSELoss
         if use_mse:
-            t1 = time.time_ns()
+            t1 = time.time()
             loss = loss_func(predictions, y)
-            t2 = time.time_ns()
+            t2 = time.time()
             t_loss_time_total += t2 - t1
 
         # NSELoss needs std of each basin for each sample
         else:
-            t1 = time.time_ns()
+            t1 = time.time()
             q_stds = q_stds.to(DEVICE)
             loss = loss_func(predictions, y, q_stds)
-            t2 = time.time_ns()
+            t2 = time.time()
             t_loss_time_total += t2 - t1
 
         # calculate gradients
-        t1 = time.time_ns()
+        t1 = time.time()
         loss.backward()
-        t2 = time.time_ns()
+        t2 = time.time()
         t_backward_time_total += t2 - t1
         
-        t1 = time.time_ns()
+        t1 = time.time()
         if cfg["clip_norm"]:
             torch.nn.utils.clip_grad_norm_(model.parameters(), cfg["clip_value"])
 
@@ -645,7 +645,7 @@ def train_epoch(model: nn.Module, optimizer: torch.optim.Optimizer, loss_func: n
         optimizer.step()        
 
         pbar.set_postfix_str(f"Loss: {loss.item():5f}")
-        t2 = time.time_ns()
+        t2 = time.time()
         t_optimizer_time_total += t2 - t1
     return t_optimizer_zero_time_total + t_forward_time_total + t_loss_time_total + t_backward_time_total + t_optimizer_time_total + t_mist_time_total
 
