@@ -553,6 +553,8 @@ def train(cfg):
         model_path = cfg["run_dir"] / f"model_epoch{epoch}.pt"
         torch.save(model.state_dict(), str(model_path))
         print(f"Total Data Manipulation Time Per Epoch[{epoch}] : {t_epoch_pure_data_time_total} s")
+        print(f"Total Training Time Per Epoch[{epoch}] : {t_epoch_pure_training_time_total} s")
+        print(f"Data Manipulation to Training Ratio Per Epoch[{epoch}] : {t_epoch_pure_data_time_total / t_epoch_pure_training_time_total}")
 
         
 def train_epoch(model: nn.Module, optimizer: torch.optim.Optimizer, loss_func: nn.Module,
