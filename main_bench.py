@@ -586,7 +586,7 @@ def train_epoch(model: nn.Module, optimizer: torch.optim.Optimizer, loss_func: n
     t_optimizer_zero_time_total = 0        
     t_forward_time_total = 0
     t_loss_time_total = 0
-    t_backward_time_total = 
+    t_backward_time_total = 0
     t_optimizer_time_total = 0
     t_mist_time_total = 0
     
